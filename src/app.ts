@@ -1,3 +1,4 @@
+import fileType from 'file-type';
 import fs from 'fs';
 import sax from 'sax';
 
@@ -45,13 +46,8 @@ const processResource = async (
   if (mimetype === 'application/x-microsoft.net.object.binary.base64') {
     const buffer = Buffer.from(value, 'base64');
 
-    // See here for an explanation of this monster: https://github.com/sindresorhus/file-type/issues/525
-    (async () => {
-      const { fileTypeFromBuffer } = await import('file-type');
-
-      const type = await fileTypeFromBuffer(buffer);
-      console.log(type);
-    })();
+    const type = await fileType.fromBuffer(buffer);
+    console.log(type);
   }
 };
 
