@@ -1,5 +1,4 @@
 import fs from 'fs';
-
 import sax from 'sax';
 
 const main = () => {
@@ -38,8 +37,22 @@ const extractResxFile = (resxFilePath: string) => {
   fs.createReadStream(resxFilePath).pipe(saxStream);
 };
 
-const processResource = (name: string, mimetype: string, value: string) => {
-  // TODO
+const processResource = async (
+  name: string,
+  mimetype: string,
+  value: string
+) => {
+  if (mimetype === 'application/x-microsoft.net.object.binary.base64') {
+    const buffer = Buffer.from(value, 'base64');
+
+    // See here for an explanation of this monster: https://github.com/sindresorhus/file-type/issues/525
+    (async () => {
+      const { fileTypeFromBuffer } = await import('file-type');
+
+      const type = await fileTypeFromBuffer(buffer);
+      console.log(type);
+    })();
+  }
 };
 
 main();
