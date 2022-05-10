@@ -60,43 +60,39 @@ const extractResxFile = (resxFilePath: string) => {
 };
 
 const processResource = async (resxData: ResxData) => {
+  console.log(`Processing ${resxData.name}`);
+
   if (
     resxData.mimetype === 'application/x-microsoft.net.object.binary.base64'
   ) {
-    // TODO: figure out how to handle this
-    return;
-
     const buffer = Buffer.from(resxData.values.join(''), 'base64');
 
-    // console.log('buffer=', String(buffer));
+    const classNameLength = buffer.readUInt8(0x6d);
+    const className = buffer.subarray(0x6e, 0x6e + classNameLength).toString();
 
-    // TODO: determine extension from file type
-    const extension = 'bin';
-    const filename = `${name}.${extension}`;
+    if (className === 'System.Drawing.Bitmap') {
+      // This is a naïve hack to extract System.Drawing.Bitmap content 🤷‍♂️
+      const dataString = buffer.subarray(0x88, 0x8c).toString();
+      if (dataString !== 'Data') {
+        console.warn(
+          `Warning: string from 0x88 to 0x8c in ${resxData.name} value does not equal 'Data'`
+        );
+      }
 
-    // await writeResourceFile(filename, buffer);
-    // TODO
-    // process.exit();
+      // The data ends with an extra byte containting `0x0b`
+      const data = buffer.subarray(0xa1, buffer.length - 1);
 
-    // const type = await fileType.fromBuffer(buffer);
-    // console.log('name=', name);
-    // console.log('mimetype=', mimetype);
-    // console.log(type?.ext);
+      // Try to determine the filetype, to use as the extension
+      const type = await fileType.fromBuffer(data);
+      const filename = `${resxData.name}.${type?.ext || 'bin'}`;
 
-    // TODO: file type recognition isn't working...
-    // either file-type doesn't have the correct file types or we're not properly decoding the binary data
-
-    // TODO: save the file
-    // filename: name + type.ext
-    // contents: buffer
+      await writeFile(path.join(destinationPath, filename), data);
+    }
   } else if (resxData.type?.startsWith('System.Byte[]')) {
     const buffer = Buffer.from(resxData.values.join(''), 'base64');
 
-    // TODO: reuse this code in the previous section
-    // Try to determine the filetype, to use as the extension
     const type = await fileType.fromBuffer(buffer);
-    // TODO: 'byte'-> 'bin' (using 'byte' temporarily to distinguish from previous section)
-    const filename = `${resxData.name}.${type?.ext || 'byte'}`;
+    const filename = `${resxData.name}.${type?.ext || 'bin'}`;
 
     await writeFile(path.join(destinationPath, filename), buffer);
   }
