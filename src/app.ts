@@ -67,6 +67,9 @@ const extractResxFile = (resxFilePath: string) => {
 const processResource = async (resxData: ResxData) => {
   console.log(`Processing ${resxData.name}`);
 
+  // These will be in .resx files generated from ILSpy (see README.md)
+  // This is mostly deprecated by ResourceExtractorDotNet, but no harm in leaving it here
+  // for historical purposes
   if (
     resxData.mimetype === 'application/x-microsoft.net.object.binary.base64'
   ) {
@@ -93,7 +96,13 @@ const processResource = async (resxData: ResxData) => {
 
       await writeFile(path.join(destinationPath, filename), data);
     }
-  } else if (resxData.type?.startsWith('System.Byte[]')) {
+  } else if (
+    // These will be in .resx files generated from ResourceExtractorDotNet
+    resxData.mimetype ===
+      'application/x-microsoft.net.object.bytearray.base64' ||
+    // These could be in .resx files from IlSpy or ResourceExtractorDotNet
+    resxData.type?.startsWith('System.Byte[]')
+  ) {
     const buffer = Buffer.from(resxData.values.join(''), 'base64');
 
     const type = await fileType.fromBuffer(buffer);
