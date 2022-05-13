@@ -1,6 +1,6 @@
 import fileType from 'file-type';
 import { createReadStream } from 'fs';
-import { writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import sax from 'sax';
 
@@ -13,7 +13,7 @@ type ResxData = {
 
 let destinationPath = '';
 
-const main = () => {
+const main = async () => {
   if (process.argv.length !== 4) {
     console.log(
       'Error: Please provide the resx file path and the destination path'
@@ -24,7 +24,12 @@ const main = () => {
   const resxFilePath = process.argv[2];
   destinationPath = process.argv[3];
 
+  await createDestinationPath(destinationPath);
   extractResxFile(resxFilePath);
+};
+
+const createDestinationPath = async (destinationPath: string) => {
+  mkdir(destinationPath);
 };
 
 const extractResxFile = (resxFilePath: string) => {
