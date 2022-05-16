@@ -3,7 +3,7 @@ Simple utility to extract binaries from .NET Resource (`.resx`) files
 #### Features
 
 - Uses a streaming XML parser, so will extract and write the output files as it parses the `.resx` file
-- Can handle `System.Byte[]` data as well as a naïve attempt at extracting `System.Drawing.Bitmap`
+- Can handle `System.Byte[]` data as well as `application/x-microsoft.net.object.bytearray.base64`
 - Uses [sindresorhus/file-type](https://github.com/sindresorhus/file-type) to try to determine the filetype and set and appropriate extension
 
 #### Usage
